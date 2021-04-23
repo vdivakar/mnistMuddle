@@ -1,0 +1,14 @@
+1. GANs input is random noise. So, it may not be perfect to use for generating various types of images. We don't know what type of noise to provide for generating a specific type of image.
+    Also, GAN only distinguished b/w "real" & "fake" thing. It doesn't check that a cat should actually look like a cat. What if you generate something else instead of a cat but it looks real!
+    
+2. Autoencoder vs Variational autoencoder
+    - Autoencoder: Input is original img. Output is pred image which should match the input image
+                 : We know what is the input here instead of random noise (An image)
+                 : The latent vector is like the encoded version of input. It is the decoded to obtain (approx) original img
+                 : We can get this latent vector from the input image.
+                 : But we can't create it on our own. It can take any value.
+                 
+    - VAE: The latent vector generated above can have any value. Instead, we would want to restrict it so that we can know what value to give as input for what expected output.
+         : So, add a constraint. E.g. the latent vector values should follow a gaussian distribution. Now, we can focus on Mean & variance values.
+         
+[link for above]:http://kvfrans.com/variational-autoencoders-explained/
