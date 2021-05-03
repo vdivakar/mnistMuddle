@@ -1,32 +1,17 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import random
 
 st.title("MNIST Muddle")
 st.write("\
-### Generating poor handwritten digits just to prove your handwritting is good!\
+### Generating poorly handwritten digits, proving your handwritting is good!\
 ")
-df = [1,2,3,4,5]
 
-option = st.sidebar.selectbox(
-    'Which number do you like best?',
-     df)
+nums_list = [0,1,2,3,4,5,6,7,8,9]
+selected_number = st.radio('Select Number', nums_list, index=0)
 
-'You selected:', option
-
-left_column, right_column = st.beta_columns(2)
-pressed = left_column.button('Press me?')
-if pressed:
-    right_column.write("Woohoo!")
-
-# expander = st.beta_expander("FAQ")
-# expander.write("Here you could put in some really, really long explanations...")
-
-
-# from PIL import Image
-# image = Image.open('sprite.png')
-# st.image(image, caption='sprite')
-
+st.button('Re-generate')
 ######################################################################
 import sys
 sys.path.append("/Users/dv/Projects/PyTorch-projects/mnistMuddle/")
@@ -53,28 +38,40 @@ def load_model():
 @st.cache
 def load_data():
     mndata = MNIST('../Data/mnist')
-    raw_test_images, raw_test_labels = mndata.load_testing()
+    batch = mndata.load_training_in_batches(5000)
+    (raw_test_images, raw_test_labels) = next(batch)
     X_te = np.array(raw_test_images)
     y_te = np.array(raw_test_labels)
     X_te_imgs = X_te.reshape([-1, 1,28,28])
     
     return X_te_imgs, y_te
 
-def display_img(tensor):
-    m = tensor.shape[0]
-    for i in range(m):
-        temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
-        st.image(temp, clamp=True)
+# def display_img(tensor):
+#     m = tensor.shape[0]
+#     for i in range(m):
+#         temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
+#         st.image(temp, clamp=True)
 
+def display_img_array(tensor):
+    l = list(st.beta_columns(len(tensor)))
+    for i in range(len(l)):
+        temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
+        with l[i]:
+            st.image(temp, clamp=True, use_column_width=True)
 
 model = load_model()
 images, labels = load_data()
 
-rule_1 = labels==7
+rule_1 = labels==selected_number
 rule_2 = labels==9
 
-a = torch.tensor(images[rule_1][:1])/255
-b = torch.tensor(images[rule_2][:1])/255
+a = torch.tensor(images[rule_1])
+random_num = random.randint(0, len(a)-1)
+a = a[random_num:random_num+1]/255
+
+b = torch.tensor(images[rule_2])
+random_num = random.randint(0, len(b)-1)
+b = b[random_num:random_num+1]/255
 
 with torch.no_grad():
     l1 = model.encoder(a)
@@ -85,8 +82,10 @@ with torch.no_grad():
     o2 = model.decoder(l2)
     o3 = model.decoder(l_avg)
 
-    display_img(o1)
-    display_img(o2)
-    display_img(o3)
+    # display_img(o1)
+    # display_img(o2)
+    # display_img(o3)
+
+    display_img_array(torch.cat((o1,o2,o3)))
 
 print("DONE!")
