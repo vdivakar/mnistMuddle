@@ -46,11 +46,19 @@ def load_data():
     
     return X_te_imgs, y_te
 
-# def display_img(tensor):
-#     m = tensor.shape[0]
-#     for i in range(m):
-#         temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
-#         st.image(temp, clamp=True)
+@st.cache
+def load_avg_latent_vectors():
+    images, labels = load_data()
+    model = load_model()
+    avg_latent_vecs = np.zeros((10,10))
+    with torch.no_grad():
+        for num in range(0, 10):
+            x = torch.tensor(images[labels==num])/255
+            l = model.encoder(x) #get latent vectors
+            l_mean = l.mean(axis=0)
+            l_mean = l_mean.detach().numpy()
+            avg_latent_vecs[num] = l_mean
+    return avg_latent_vecs
 
 def display_img_array(tensor):
     l = list(st.beta_columns(len(tensor)))
@@ -59,32 +67,36 @@ def display_img_array(tensor):
         with l[i]:
             st.image(temp, clamp=True, use_column_width=True)
 
+def get_rand_img(images, labels, number):
+    rule = labels==number
+    imgs = torch.tensor(images[rule])
+    rand_num = random.randint(0, len(imgs)-1)
+    rand_img = imgs[rand_num:rand_num+1]/255
+    return rand_img
+
 model = load_model()
 images, labels = load_data()
+avg_latent_vecs = load_avg_latent_vectors()
 
-rule_1 = labels==selected_number
-rule_2 = labels==9
-
-a = torch.tensor(images[rule_1])
-random_num = random.randint(0, len(a)-1)
-a = a[random_num:random_num+1]/255
-
-b = torch.tensor(images[rule_2])
-random_num = random.randint(0, len(b)-1)
-b = b[random_num:random_num+1]/255
+a = get_rand_img(images, labels, selected_number)
 
 with torch.no_grad():
     l1 = model.encoder(a)
+
+    #1. Finding distances from clusters centers in latent domain.
+    #2. Selecting a different cluster than itself.
+    #3. Picking a random image from that nearest cluster.
+    cluster_distances = np.linalg.norm(avg_latent_vecs - l1.detach().numpy(), axis=1)
+    nearest_clusters = np.argpartition(cluster_distances, 2) # Top 2 indices with minimum distance
+    nearest_cluster_idx = nearest_clusters[1] if nearest_clusters[0]==selected_number else nearest_clusters[0]
+    b = get_rand_img(images, labels, nearest_cluster_idx)
+
     l2 = model.encoder(b)
     l_avg = (l1+l2)/2
 
     o1 = model.decoder(l1)
     o2 = model.decoder(l2)
     o3 = model.decoder(l_avg)
-
-    # display_img(o1)
-    # display_img(o2)
-    # display_img(o3)
 
     display_img_array(torch.cat((o1,o2,o3)))
 
