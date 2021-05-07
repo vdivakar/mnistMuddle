@@ -3,6 +3,10 @@ import numpy as np
 import pandas as pd
 import random
 
+from model_class import AutoEncoder
+from mnist import MNIST
+import torch
+
 st.title("MNIST Muddle")
 st.write("\
 ### Generating poorly handwritten digits, proving your handwritting is good!\
@@ -13,10 +17,6 @@ selected_number = st.radio('Select Number', nums_list, index=0)
 
 st.button('Re-generate')
 ######################################################################
-from model_class import AutoEncoder
-from mnist import MNIST
-import torch
-
 load_dir = "checkpoints/"
 
 @st.cache
