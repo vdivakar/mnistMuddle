@@ -58,12 +58,14 @@ def load_avg_latent_vectors():
             avg_latent_vecs[num] = l_mean
     return avg_latent_vecs
 
-def display_img_array(tensor):
-    l = list(st.beta_columns(len(tensor)))
+def display_img_array(tensor, texts):
+    # l = list(st.beta_columns(len(tensor)))
+    l = list(st.beta_columns([1,1,2,2]))
     for i in range(len(l)):
         temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
         with l[i]:
-            st.image(temp, clamp=True, use_column_width=True)
+            st.write(texts[i])
+            st.image(temp, clamp=True, use_column_width=True)#False, width=128)
 
 def get_rand_img(images, labels, number):
     rule = labels==number
@@ -92,10 +94,20 @@ with torch.no_grad():
     l2 = model.encoder(b)
     l_avg = (l1+l2)/2
 
-    o1 = model.decoder(l1)
-    #o2 = model.decoder(l2)
-    o3 = model.decoder(l_avg)
+    l_avg_clusters = (avg_latent_vecs[selected_number] + avg_latent_vecs[nearest_cluster_idx])
+    l_avg_clusters = torch.tensor(l_avg_clusters.astype(np.float32))
+    l_avg_clusters = (l_avg_clusters+l1)/3
 
-    display_img_array(torch.cat((o1,o3)))
+    o1 = model.decoder(l1)
+    o2 = model.decoder(l2)
+    o3 = model.decoder(l_avg)
+    o4 = model.decoder(l_avg_clusters)
+
+    outputs = torch.cat((o1,o2,o3,o4))
+    texts = ["Input: {}".format(selected_number),\
+             "False Target: {}".format(nearest_cluster_idx), \
+             "Output-1", \
+             "Output-2"]
+    display_img_array(outputs, texts)
 
 print("DONE!")
