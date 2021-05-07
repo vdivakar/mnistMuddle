@@ -93,9 +93,9 @@ with torch.no_grad():
     l_avg = (l1+l2)/2
 
     o1 = model.decoder(l1)
-    o2 = model.decoder(l2)
+    #o2 = model.decoder(l2)
     o3 = model.decoder(l_avg)
 
-    display_img_array(torch.cat((o1,o2,o3)))
+    display_img_array(torch.cat((o1,o3)))
 
 print("DONE!")
