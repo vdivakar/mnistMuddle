@@ -9,13 +9,18 @@ import torch
 
 st.title("MNIST Muddle")
 st.write("\
-### Generating poorly handwritten digits, proving your handwritting is good!\
+### Generating poorly handwritten digits\
 ")
 
 nums_list = [0,1,2,3,4,5,6,7,8,9]
-selected_number = st.radio('Select Number', nums_list, index=0)
 
-st.button('Re-generate')
+left_col, right_col = st.beta_columns([1,3])
+with left_col:
+    selected_number = st.radio('Select Number', nums_list, index=0)
+    st.button('Re-generate')
+
+with right_col:
+    st.image('tr700.png', width=400)
 ######################################################################
 load_dir = "checkpoints/"
 
