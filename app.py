@@ -20,7 +20,7 @@ with left_col:
     st.button('Re-generate')
 
 with right_col:
-    st.image('Data/tsne-latent.png', width=400)
+    st.image('Data/tsne-latent.png', "t-SNE plot of latent vectors (train images)" , width=400)
 ######################################################################
 load_dir = "checkpoints/"
 
@@ -116,3 +116,10 @@ with torch.no_grad():
     display_img_array(outputs, texts)
 
 print("DONE!")
+
+#####################
+link_github = '[GitHub Repo Link](https://github.com/vdivakar/mnistMuddle)'
+st.markdown(link_github, unsafe_allow_html=True)
+
+link_blog = '[Blog Post Link for details](https://www.divakar-verma.com/post/mnist-muddle)'
+st.markdown(link_blog, unsafe_allow_html=True)
