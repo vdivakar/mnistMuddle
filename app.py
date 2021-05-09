@@ -109,10 +109,10 @@ with torch.no_grad():
     o4 = model.decoder(l_avg_clusters)
 
     outputs = torch.cat((o1,o2,o3,o4))
-    texts = ["Input: {}".format(selected_number),\
+    texts = ["Input: {}\n".format(selected_number),\
              "Pseudo-Mimic: {}".format(nearest_cluster_idx), \
-             "Output-1", \
-             "Output-2"]
+             "Output-1\n", \
+             "Output-2\n"]
     display_img_array(outputs, texts)
 
 print("DONE!")
