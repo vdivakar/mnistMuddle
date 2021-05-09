@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import random
+from PIL import Image
 
 from model_class import AutoEncoder
 from mnist import MNIST
@@ -9,7 +10,8 @@ import torch
 
 st.title("MNIST Muddle")
 st.write("\
-### Generating poorly handwritten digits\
+## Generating poorly handwritten digits...\n\
+... Proving humans' handwriting is still good!\
 ")
 
 nums_list = [0,1,2,3,4,5,6,7,8,9]
@@ -67,7 +69,10 @@ def display_img_array(tensor, texts):
     # l = list(st.beta_columns(len(tensor)))
     l = list(st.beta_columns([1,1,2,2]))
     for i in range(len(l)):
-        temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
+        if i==3:
+            temp = "./latent_output.gif"
+        else:
+            temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
         with l[i]:
             st.write(texts[i])
             st.image(temp, clamp=True, use_column_width=True)#False, width=128)
@@ -99,20 +104,34 @@ with torch.no_grad():
     l2 = model.encoder(b)
     l_avg = (l1+l2)/2
 
-    l_avg_clusters = (avg_latent_vecs[selected_number] + avg_latent_vecs[nearest_cluster_idx])
-    l_avg_clusters = torch.tensor(l_avg_clusters.astype(np.float32))
-    l_avg_clusters = (l_avg_clusters+l1)/3
-
     o1 = model.decoder(l1)
     o2 = model.decoder(l2)
     o3 = model.decoder(l_avg)
-    o4 = model.decoder(l_avg_clusters)
 
-    outputs = torch.cat((o1,o2,o3,o4))
-    texts = ["Input: {}\n".format(selected_number),\
-             "Pseudo-Mimic: {}".format(nearest_cluster_idx), \
-             "Output-1\n", \
-             "Output-2\n"]
+    def save_gif():
+        weights = [0.25, 0.35, 0.45, 0.5, 0.55, 0.65, 0.75]
+        frames = []
+        for w in weights:
+            l_wavg  = (1-w)*l1 + w*l2
+            out     = model.decoder(l_wavg).squeeze().detach().numpy()*255
+            print(out.shape)
+            out_img = Image.fromarray(out).convert('L')
+            # out_img.save("{}.png".format(w))
+            frames.append(out_img)
+        frames2 = frames #to play in bounce format
+        for f in reversed(frames):
+            frames2.append(f)
+        frames2[0].save('./latent_output.gif', format='GIF',
+                        append_images=frames[1:],
+                        save_all=True,
+                        duration=185, loop=0)
+    save_gif()
+
+    outputs = torch.cat((o1,o2,o3,o3))
+    texts = ["Input: {}".format(selected_number),\
+             "Mimic: {}".format(nearest_cluster_idx), \
+             "Output Img", \
+             "Output GIF"]
     display_img_array(outputs, texts)
 
 print("DONE!")
