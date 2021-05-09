@@ -20,7 +20,7 @@ with left_col:
     st.button('Re-generate')
 
 with right_col:
-    st.image('tr700.png', width=400)
+    st.image('Data/tsne-latent.png', width=400)
 ######################################################################
 load_dir = "checkpoints/"
 
@@ -110,7 +110,7 @@ with torch.no_grad():
 
     outputs = torch.cat((o1,o2,o3,o4))
     texts = ["Input: {}".format(selected_number),\
-             "False Target: {}".format(nearest_cluster_idx), \
+             "Pseudo-Mimic: {}".format(nearest_cluster_idx), \
              "Output-1", \
              "Output-2"]
     display_img_array(outputs, texts)
