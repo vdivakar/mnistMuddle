@@ -2,29 +2,29 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import random
+from PIL import Image
+
+from model_class import AutoEncoder
+from mnist import MNIST
+import torch
 
 st.title("MNIST Muddle")
 st.write("\
-### Generating poorly handwritten digits\
+## Generating poorly handwritten digits...\n\
+... Proving humans' handwriting is still good!\
 ")
 
-left_col, right_col = st.beta_columns([1,3])
 nums_list = [0,1,2,3,4,5,6,7,8,9]
 
+left_col, right_col = st.beta_columns([1,3])
 with left_col:
     selected_number = st.radio('Select Number', nums_list, index=0)
     st.button('Re-generate')
 
 with right_col:
-    st.image('tr700.png', width=400)
+    st.image('tsne-latent.png', "t-SNE plot of latent vectors (train images)" , width=400)
 ######################################################################
-import sys
-sys.path.append("/Users/dv/Projects/PyTorch-projects/mnistMuddle/")
-from model_class import AutoEncoder
-from mnist import MNIST
-import torch
-
-load_dir = "/Users/dv/Projects/PyTorch-projects/mnistMuddle/checkpoints/"
+load_dir = "../checkpoints/"
 
 @st.cache
 def load_model():
@@ -65,12 +65,17 @@ def load_avg_latent_vectors():
             avg_latent_vecs[num] = l_mean
     return avg_latent_vecs
 
-def display_img_array(tensor):
-    l = list(st.beta_columns(len(tensor)))
+def display_img_array(tensor, texts):
+    # l = list(st.beta_columns(len(tensor)))
+    l = list(st.beta_columns([1,1,2,2]))
     for i in range(len(l)):
-        temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
+        if i==3:
+            temp = "./latent_output.gif"
+        else:
+            temp = tensor[i].permute(1,2,0).squeeze().detach().numpy()
         with l[i]:
-            st.image(temp, clamp=True, use_column_width=True)
+            st.write(texts[i])
+            st.image(temp, clamp=True, use_column_width=True)#False, width=128)
 
 def get_rand_img(images, labels, number):
     rule = labels==number
@@ -103,6 +108,37 @@ with torch.no_grad():
     o2 = model.decoder(l2)
     o3 = model.decoder(l_avg)
 
-    display_img_array(torch.cat((o1,o2,o3)))
+    def save_gif():
+        weights = [0.25, 0.35, 0.45, 0.5, 0.55, 0.65, 0.75]
+        frames = []
+        for w in weights:
+            l_wavg  = (1-w)*l1 + w*l2
+            out     = model.decoder(l_wavg).squeeze().detach().numpy()*255
+            print(out.shape)
+            out_img = Image.fromarray(out).convert('L')
+            # out_img.save("{}.png".format(w))
+            frames.append(out_img)
+        frames2 = frames #to play in bounce format
+        for f in reversed(frames):
+            frames2.append(f)
+        frames2[0].save('./latent_output.gif', format='GIF',
+                        append_images=frames[1:],
+                        save_all=True,
+                        duration=185, loop=0)
+    save_gif()
+
+    outputs = torch.cat((o1,o2,o3,o3))
+    texts = ["Input: {}".format(selected_number),\
+             "Mimic: {}".format(nearest_cluster_idx), \
+             "Output Img", \
+             "Output GIF"]
+    display_img_array(outputs, texts)
 
 print("DONE!")
+
+#####################
+link_github = '[GitHub Repo Link](https://github.com/vdivakar/mnistMuddle)'
+st.markdown(link_github, unsafe_allow_html=True)
+
+link_blog = '[Blog Post Link for details](https://www.divakar-verma.com/post/mnist-muddle)'
+st.markdown(link_blog, unsafe_allow_html=True)
