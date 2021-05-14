@@ -3,7 +3,17 @@
 
 Generating poorly written digits to prove humans' handwriting is still good!
 
-Files:
+<img src="https://github.com/vdivakar/mnistMuddle/blob/master/images/sample_output.png" width="120">
+
+### Project Demo Page - [Link](https://share.streamlit.io/vdivakar/mnistmuddle/br_streamlit/app.py)
+[![project demo page][1]][2]
+
+[1]:  https://github.com/vdivakar/mnistMuddle/blob/master/images/mnistMuddleCast.gif
+[2]:  https://share.streamlit.io/vdivakar/mnistmuddle/br_streamlit/app.py
+
+### Details and description - [Blog post](https://www.divakar-verma.com/post/mnist-muddle)
+
+#### Files:
 
 `train_model.py` - Train your own model from scratch. <br>
 `model_class.py` - AutoEncoder model <br>
@@ -24,4 +34,5 @@ streamlit==0.80.0
 python-mnist
 ```
 
-### Project Demo
+
+
